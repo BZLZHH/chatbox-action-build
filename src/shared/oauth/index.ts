@@ -11,6 +11,33 @@ export interface OAuthProviderInfo {
   flowType: 'callback' | 'code-paste' | 'device-code'
 }
 
+export interface OAuthResult {
+  success: boolean
+  error?: string
+  credentials?: {
+    accessToken: string
+    refreshToken?: string
+    expiresAt?: number
+    scope?: string
+  }
+}
+
+export interface OAuthStartResult {
+  success: boolean
+  error?: string
+  verificationUri?: string
+  userCode?: string
+  authUrl?: string
+}
+
+export interface DeviceFlowStartResult {
+  success: boolean
+  error?: string
+  verificationUri?: string
+  userCode?: string
+  message?: string
+}
+
 export function mergeSharedOAuthProviderSettings(
   providerId: string,
   providers: Record<string, ProviderSettings> | undefined
@@ -58,3 +85,13 @@ export function createBearerOAuthFetch(..._args: unknown[]): undefined {
 export function createOpenAIOAuthFetch(..._args: unknown[]): undefined {
   return undefined
 }
+
+export const OAuthIpcChannels = {
+  LOGIN: 'oauth:login',
+  CANCEL: 'oauth:cancel',
+  START_LOGIN: 'oauth:start-login',
+  EXCHANGE_CODE: 'oauth:exchange-code',
+  START_DEVICE_FLOW: 'oauth:start-device-flow',
+  WAIT_DEVICE_TOKEN: 'oauth:wait-device-token',
+  REFRESH: 'oauth:refresh',
+} as const
