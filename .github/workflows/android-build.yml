@@ -37,10 +37,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web assets for Android
-        run: pnpm run build:web
+        run: pnpm exec electron-vite build
         env:
           CHATBOX_BUILD_TARGET: mobile_app
           CHATBOX_BUILD_PLATFORM: android
+          NODE_ENV: production
 
       - name: Delete sourcemaps
         run: pnpm run delete-sourcemaps
