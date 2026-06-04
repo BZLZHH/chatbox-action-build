@@ -1,0 +1,72 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [debug, release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web assets for Android
+        run: pnpm run build:web
+        env:
+          CHATBOX_BUILD_TARGET: mobile_app
+          CHATBOX_BUILD_PLATFORM: android
+
+      - name: Delete sourcemaps
+        run: pnpm run delete-sourcemaps
+
+      - name: Initialize Capacitor Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Configure release to use debug keystore (no signing)
+        if: matrix.variant == 'release'
+        working-directory: android/app
+        run: |
+          sed -i '/release {/a\            signingConfig signingConfigs.debug' build.gradle
+
+      - name: Build ${{ matrix.variant }} APK
+        working-directory: android
+        run: >
+          ./gradlew assemble${{ matrix.variant == 'debug' && 'Debug' || 'Release' }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.variant }}
+          path: android/app/build/outputs/apk/${{ matrix.variant }}/*.apk
+          if-no-files-found: error
