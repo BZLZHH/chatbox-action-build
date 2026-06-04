@@ -43,9 +43,6 @@ jobs:
           CHATBOX_BUILD_PLATFORM: android
           NODE_ENV: production
 
-      - name: Delete sourcemaps
-        run: pnpm run delete-sourcemaps
-
       - name: Initialize Capacitor Android project
         run: npx cap add android
 
